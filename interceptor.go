@@ -19,7 +19,9 @@ type jsonContentTypeInterceptor struct {
 
 func (l *loggerInterceptor) Interceptor(req *http.Request) {
 	log.Println("-->", req.Method, req.URL.Path)
-	log.Println(req.URL.RawQuery)
+	if req.URL.RawQuery != "" {
+		log.Println(req.URL.RawQuery)
+	}
 	for k, v := range req.Header {
 		head := k
 		value := ""
