@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+type Header map[string]string
+
+type headerInterceptor struct {
+	Header Header
+}
+
 type loggerInterceptor struct {
 }
 
@@ -30,10 +36,22 @@ func (j *jsonContentTypeInterceptor) Interceptor(req *http.Request) {
 	req.Header.Add("Accept", "application/json")
 }
 
-func JSONContentType() Interceptor {
+func (a *headerInterceptor) Interceptor(req *http.Request) {
+	for k, v := range a.Header {
+		req.Header.Add(k, v)
+	}
+}
+
+func HeaderInterceptor(header Header) Interceptor {
+	return &headerInterceptor{
+		Header: header,
+	}
+}
+
+func JSONContentTypeInterceptor() Interceptor {
 	return &jsonContentTypeInterceptor{}
 }
 
-func Logger() Interceptor {
+func LoggerInterceptor() Interceptor {
 	return &loggerInterceptor{}
 }
