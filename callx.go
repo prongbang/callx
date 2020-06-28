@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var interceptors []Interceptor = []Interceptor{}
+
 type Config struct {
 	BaseURL     string
 	Timeout     time.Duration
@@ -16,7 +18,7 @@ type Config struct {
 }
 
 type Interceptor interface {
-	Interceptor(req *http.Request, res *http.Response)
+	Interceptor(req *http.Request)
 }
 
 type Response struct {
@@ -30,6 +32,7 @@ type CallX interface {
 	Patch(url string, body map[string]interface{}) Response
 	Put(url string, body map[string]interface{}) Response
 	Delete(url string) Response
+	AddInterceptor(intercept ...Interceptor)
 	request(url string, method string, payload io.Reader) Response
 }
 
@@ -57,6 +60,12 @@ func (n *callxMethod) Delete(url string) Response {
 	return n.request(url, http.MethodDelete, nil)
 }
 
+func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
+	for _, ins := range intercept {
+		interceptors = append(interceptors, ins)
+	}
+}
+
 func (n *callxMethod) request(url string, method string, payload io.Reader) Response {
 	var ts time.Duration = 60
 	if n.Config.Timeout > 0 {
@@ -67,12 +76,14 @@ func (n *callxMethod) request(url string, method string, payload io.Reader) Resp
 	}
 	endpoint := n.Config.BaseURL + url
 	req, _ := http.NewRequest(method, endpoint, payload)
+	req.URL.RawQuery = req.URL.Query().Encode()
+	n.AddInterceptor(n.Config.Interceptor...)
+	for _, inp := range interceptors {
+		inp.Interceptor(req)
+	}
 
 	res, _ := client.Do(req)
 	body, _ := ioutil.ReadAll(res.Body)
-	for _, inp := range n.Config.Interceptor {
-		inp.Interceptor(req, res)
-	}
 	defer res.Body.Close()
 	return Response{
 		Code: res.StatusCode,
