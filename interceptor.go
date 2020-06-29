@@ -34,13 +34,13 @@ func (l *loggerInterceptor) Interceptor(req *http.Request) {
 }
 
 func (j *jsonContentTypeInterceptor) Interceptor(req *http.Request) {
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 }
 
 func (a *headerInterceptor) Interceptor(req *http.Request) {
 	for k, v := range a.Header {
-		req.Header.Add(k, v)
+		req.Header.Set(k, v)
 	}
 }
 
