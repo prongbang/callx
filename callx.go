@@ -67,6 +67,7 @@ func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
 }
 
 func (n *callxMethod) request(url string, method string, payload io.Reader) Response {
+	resNotFound := Response{Code: http.StatusNotFound}
 	var ts time.Duration = 60
 	if n.Config.Timeout > 0 {
 		ts = n.Config.Timeout
@@ -75,16 +76,25 @@ func (n *callxMethod) request(url string, method string, payload io.Reader) Resp
 		Timeout: time.Second * ts,
 	}
 	endpoint := n.Config.BaseURL + url
-	req, _ := http.NewRequest(method, endpoint, payload)
+	req, err := http.NewRequest(method, endpoint, payload)
+	if err != nil {
+		return resNotFound
+	}
 	req.URL.RawQuery = req.URL.Query().Encode()
 	n.AddInterceptor(n.Config.Interceptor...)
 	for _, inp := range interceptors {
 		inp.Interceptor(req)
 	}
 
-	res, _ := client.Do(req)
-	body, _ := ioutil.ReadAll(res.Body)
+	res, err := client.Do(req)
+	if err != nil {
+		return resNotFound
+	}
 	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return resNotFound
+	}
 	return Response{
 		Code: res.StatusCode,
 		Data: body,
