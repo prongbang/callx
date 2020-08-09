@@ -11,6 +11,24 @@ import (
 
 var interceptors []Interceptor = []Interceptor{}
 
+const (
+	Authorization = "Authorization"
+	ContentType   = "Content-Type"
+	Accept        = "Accept"
+	Basic         = "Basic"
+	Bearer        = "Bearer"
+)
+
+type Header map[string]string
+type Body map[string]string
+
+type Custom struct {
+	URL    string
+	Method string
+	Header Header
+	Body   Body
+}
+
 type Config struct {
 	BaseURL     string
 	Timeout     time.Duration
@@ -28,12 +46,13 @@ type Response struct {
 
 type CallX interface {
 	Get(url string) Response
-	Post(url string, body map[string]interface{}) Response
-	Patch(url string, body map[string]interface{}) Response
-	Put(url string, body map[string]interface{}) Response
+	Post(url string, body Body) Response
+	Patch(url string, body Body) Response
+	Put(url string, body Body) Response
 	Delete(url string) Response
+	Req(custom Custom) Response
 	AddInterceptor(intercept ...Interceptor)
-	request(url string, method string, payload io.Reader) Response
+	request(url string, method string, header Header, payload io.Reader) Response
 }
 
 type callxMethod struct {
@@ -41,23 +60,27 @@ type callxMethod struct {
 }
 
 func (n *callxMethod) Get(url string) Response {
-	return n.request(url, http.MethodGet, nil)
+	return n.request(url, http.MethodGet, nil, nil)
 }
 
-func (n *callxMethod) Post(url string, body map[string]interface{}) Response {
-	return n.request(url, http.MethodPost, getPayload(body))
+func (n *callxMethod) Post(url string, body Body) Response {
+	return n.request(url, http.MethodPost, nil, getPayload(body))
 }
 
-func (n *callxMethod) Patch(url string, body map[string]interface{}) Response {
-	return n.request(url, http.MethodPatch, getPayload(body))
+func (n *callxMethod) Patch(url string, body Body) Response {
+	return n.request(url, http.MethodPatch, nil, getPayload(body))
 }
 
-func (n *callxMethod) Put(url string, body map[string]interface{}) Response {
-	return n.request(url, http.MethodPut, getPayload(body))
+func (n *callxMethod) Put(url string, body Body) Response {
+	return n.request(url, http.MethodPut, nil, getPayload(body))
 }
 
 func (n *callxMethod) Delete(url string) Response {
-	return n.request(url, http.MethodDelete, nil)
+	return n.request(url, http.MethodDelete, nil, nil)
+}
+
+func (n *callxMethod) Req(custom Custom) Response {
+	return n.request(custom.URL, custom.Method, custom.Header, getPayload(custom.Body))
 }
 
 func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
@@ -66,7 +89,7 @@ func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
 	}
 }
 
-func (n *callxMethod) request(url string, method string, payload io.Reader) Response {
+func (n *callxMethod) request(url string, method string, header Header, payload io.Reader) Response {
 	resNotFound := Response{Code: http.StatusNotFound}
 	var ts time.Duration = 60
 	if n.Config.Timeout > 0 {
@@ -76,6 +99,9 @@ func (n *callxMethod) request(url string, method string, payload io.Reader) Resp
 		Timeout: time.Second * ts,
 	}
 	endpoint := n.Config.BaseURL + url
+	if isURL(url) {
+		endpoint = url
+	}
 	req, err := http.NewRequest(method, endpoint, payload)
 	if err != nil {
 		return resNotFound
@@ -85,6 +111,7 @@ func (n *callxMethod) request(url string, method string, payload io.Reader) Resp
 	for _, inp := range interceptors {
 		inp.Interceptor(req)
 	}
+	setHeaders(req, header)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -101,12 +128,24 @@ func (n *callxMethod) request(url string, method string, payload io.Reader) Resp
 	}
 }
 
-func getPayload(body map[string]interface{}) *strings.Reader {
-	if body == nil {
-		return nil
+func setHeaders(req *http.Request, header Header) {
+	if header != nil {
+		for k, v := range header {
+			req.Header.Set(k, v)
+		}
 	}
-	data, _ := json.Marshal(body)
+}
+
+func getPayload(body Body) *strings.Reader {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return strings.NewReader("")
+	}
 	return strings.NewReader(string(data))
+}
+
+func isURL(url string) bool {
+	return strings.Index(url, "http://") > -1 || strings.Index(url, "https://") > -1
 }
 
 func New(config Config) CallX {
