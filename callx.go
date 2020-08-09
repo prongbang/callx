@@ -11,6 +11,7 @@ import (
 
 var interceptors []Interceptor = []Interceptor{}
 
+// Constant Header
 const (
 	Authorization = "Authorization"
 	ContentType   = "Content-Type"
@@ -19,9 +20,13 @@ const (
 	Bearer        = "Bearer"
 )
 
+// Header custom type
 type Header map[string]string
+
+// Body custom type
 type Body map[string]string
 
+// Custom callx request model
 type Custom struct {
 	URL    string
 	Method string
@@ -29,21 +34,25 @@ type Custom struct {
 	Body   Body
 }
 
+// Config callx model
 type Config struct {
 	BaseURL     string
 	Timeout     time.Duration
 	Interceptor []Interceptor
 }
 
+// Interceptor the interface
 type Interceptor interface {
 	Interceptor(req *http.Request)
 }
 
+// Response callx model
 type Response struct {
 	Code int
 	Data []byte
 }
 
+// CallX the interface
 type CallX interface {
 	Get(url string) Response
 	Post(url string, body Body) Response
@@ -148,6 +157,7 @@ func isURL(url string) bool {
 	return strings.Index(url, "http://") > -1 || strings.Index(url, "https://") > -1
 }
 
+// New callx
 func New(config Config) CallX {
 	return &callxMethod{
 		Config: config,

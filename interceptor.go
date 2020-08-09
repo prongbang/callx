@@ -39,16 +39,19 @@ func (a *headerInterceptor) Interceptor(req *http.Request) {
 	}
 }
 
+// HeaderInterceptor provide a instance
 func HeaderInterceptor(header Header) Interceptor {
 	return &headerInterceptor{
 		Header: header,
 	}
 }
 
+// JSONContentTypeInterceptor provide a instance
 func JSONContentTypeInterceptor() Interceptor {
 	return &jsonContentTypeInterceptor{}
 }
 
+// LoggerInterceptor provide a instance
 func LoggerInterceptor() Interceptor {
 	return &loggerInterceptor{}
 }
