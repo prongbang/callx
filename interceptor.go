@@ -5,8 +5,6 @@ import (
 	"net/http"
 )
 
-type Header map[string]string
-
 type headerInterceptor struct {
 	Header Header
 }
