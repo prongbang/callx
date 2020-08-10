@@ -48,6 +48,19 @@ func Test_PostBodyNil(t *testing.T) {
 	}
 }
 
+func Test_PostServerNotFound(t *testing.T) {
+	c := callx.Config{
+		BaseURL: "http://localhost:1234/todos",
+		Timeout: 60,
+	}
+	req := callx.New(c)
+
+	data := req.Post("/todos", nil)
+	if data.Code != 404 {
+		t.Error("CallX Post Error")
+	}
+}
+
 func Test_Post(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Hello, Post")
@@ -148,5 +161,25 @@ func Test_Req(t *testing.T) {
 	data := req.Req(custom)
 	if data.Code != 200 {
 		t.Error("CallX Req Post Error")
+	}
+}
+
+func Test_ReqMethodNotFound(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, Post")
+	}))
+	defer ts.Close()
+
+	c := callx.Config{
+		Timeout: 60,
+	}
+	req := callx.New(c)
+	custom := callx.Custom{
+		URL:    ts.URL + "/post",
+		Method: "!#@!@",
+	}
+	data := req.Req(custom)
+	if data.Code != 404 {
+		t.Error("CallX Post Error")
 	}
 }
