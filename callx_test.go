@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/prongbang/callx"
@@ -158,6 +160,35 @@ func Test_Req(t *testing.T) {
 			"password": "pass",
 		},
 	}
+	data := req.Req(custom)
+	if data.Code != 200 {
+		t.Error("CallX Req Post Error")
+	}
+}
+
+func Test_ReqEncoded(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, Req Post")
+	}))
+	defer ts.Close()
+
+	c := callx.Config{
+		Timeout: 60,
+	}
+	req := callx.New(c)
+
+	form := url.Values{}
+	form.Set("message", "Test")
+	custom := callx.Custom{
+		URL:    "https://httpbin.org/post",
+		Method: http.MethodPost,
+		Header: callx.Header{
+			callx.Authorization: "Bearer XTZ",
+			callx.ContentType:   "application/x-www-form-urlencoded",
+		},
+		Form: strings.NewReader(form.Encode()),
+	}
+
 	data := req.Req(custom)
 	if data.Code != 200 {
 		t.Error("CallX Req Post Error")
