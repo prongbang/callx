@@ -32,6 +32,7 @@ type Custom struct {
 	Method string
 	Header Header
 	Body   Body
+	Form   io.Reader
 }
 
 // Config callx model
@@ -89,6 +90,9 @@ func (n *callxMethod) Delete(url string) Response {
 }
 
 func (n *callxMethod) Req(custom Custom) Response {
+	if custom.Form != nil {
+		return n.request(custom.URL, custom.Method, custom.Header, custom.Form)
+	}
 	return n.request(custom.URL, custom.Method, custom.Header, getPayload(custom.Body))
 }
 
