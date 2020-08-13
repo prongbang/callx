@@ -119,7 +119,6 @@ func (n *callxMethod) request(url string, method string, header Header, payload 
 	if err != nil {
 		return resNotFound
 	}
-	req.URL.RawQuery = req.URL.Query().Encode()
 	n.AddInterceptor(n.Config.Interceptor...)
 	for _, inp := range interceptors {
 		inp.Interceptor(req)
