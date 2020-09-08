@@ -43,7 +43,35 @@ custom := callx.Custom{
     Body: callx.Body{
         "username": "root",
         "password": "pass",
+        "address": []string{
+            "087654321",
+            "089786756",
+        },
     },
+}
+data := req.Req(custom)
+fmt.Println(string(data.Data))
+```
+
+- Custom request form encoded
+
+```golang
+c := callx.Config{
+    Timeout: 60,
+}
+req := callx.New(c)
+
+form := url.Values{}
+form.Set("message", "Test")
+
+custom := callx.Custom{
+    URL:    "https://httpbin.org/post",
+    Method: http.MethodPost,
+    Header: callx.Header{
+        callx.Authorization: "Bearer XTZ",
+        callx.ContentType:   "application/x-www-form-urlencoded",
+    },
+    Form: strings.NewReader(form.Encode()),
 }
 data := req.Req(custom)
 fmt.Println(string(data.Data))
