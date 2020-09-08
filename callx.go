@@ -24,7 +24,7 @@ const (
 type Header map[string]string
 
 // Body custom type
-type Body map[string]string
+type Body map[string]interface{}
 
 // Custom callx request model
 type Custom struct {
