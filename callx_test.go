@@ -50,6 +50,27 @@ func Test_PostBodyNil(t *testing.T) {
 	}
 }
 
+func Test_PostBodyError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, Post")
+	}))
+	defer ts.Close()
+
+	c := callx.Config{
+		BaseURL: ts.URL,
+		Timeout: 60,
+	}
+	req := callx.New(c)
+
+	body := map[string]interface{}{
+		"error": make(chan int),
+	}
+	data := req.Post("/todos", body)
+	if data.Code != 200 {
+		t.Error("CallX Post Error")
+	}
+}
+
 func Test_PostServerNotFound(t *testing.T) {
 	c := callx.Config{
 		BaseURL: "http://localhost:1234/todos",
@@ -76,6 +97,25 @@ func Test_Post(t *testing.T) {
 	req := callx.New(c)
 
 	body := callx.Body{}
+	data := req.Post("/todos", body)
+	if data.Code != 200 {
+		t.Error("CallX Post Error")
+	}
+}
+
+func Test_Post_List(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, Post")
+	}))
+	defer ts.Close()
+
+	c := callx.Config{
+		BaseURL: ts.URL,
+		Timeout: 60,
+	}
+	req := callx.New(c)
+
+	body := []interface{}{"1", "2", "3", "4"}
 	data := req.Post("/todos", body)
 	if data.Code != 200 {
 		t.Error("CallX Post Error")
