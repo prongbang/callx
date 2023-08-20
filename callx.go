@@ -3,13 +3,13 @@ package callx
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
 
-var interceptors []Interceptor = []Interceptor{}
+var interceptors []Interceptor
 
 // Constant Header
 const (
@@ -61,12 +61,13 @@ type CallX interface {
 	Put(url string, body interface{}) Response
 	Delete(url string) Response
 	Req(custom Custom) Response
-	AddInterceptor(intercept ...Interceptor)
-	request(url string, method string, header Header, payload io.Reader) Response
+	AddInterceptor(req *http.Request)
+	request(urlStr string, method string, header Header, payload io.Reader) Response
 }
 
 type callxMethod struct {
 	Config Config
+	Client *http.Client // Reuse the same client for connection pooling
 }
 
 func (n *callxMethod) Get(url string) Response {
@@ -96,41 +97,41 @@ func (n *callxMethod) Req(custom Custom) Response {
 	return n.request(custom.URL, custom.Method, custom.Header, getPayload(custom.Body))
 }
 
-func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
-	for _, ins := range intercept {
-		interceptors = append(interceptors, ins)
+func (n *callxMethod) AddInterceptor(req *http.Request) {
+	for _, interceptor := range interceptors {
+		interceptor.Interceptor(req)
 	}
 }
 
-func (n *callxMethod) request(url string, method string, header Header, payload io.Reader) Response {
+func (n *callxMethod) request(urlStr string, method string, header Header, payload io.Reader) Response {
 	resNotFound := Response{Code: http.StatusNotFound}
-	var ts time.Duration = 60
-	if n.Config.Timeout > 0 {
-		ts = n.Config.Timeout
-	}
-	client := &http.Client{
-		Timeout: time.Second * ts,
-	}
-	endpoint := n.Config.BaseURL + url
-	if isURL(url) {
-		endpoint = url
-	}
-	req, err := http.NewRequest(method, endpoint, payload)
+
+	endpointURL, err := url.Parse(urlStr)
 	if err != nil {
 		return resNotFound
 	}
-	n.AddInterceptor(n.Config.Interceptor...)
-	for _, inp := range interceptors {
-		inp.Interceptor(req)
+
+	if !isURL(urlStr) && n.Config.BaseURL != "" {
+		endpointURL.Scheme = "http" // You can set this to "https" if needed
+		endpointURL.Host = n.Config.BaseURL
 	}
+
+	req, err := http.NewRequest(method, endpointURL.String(), payload)
+	if err != nil {
+		return resNotFound
+	}
+
+	n.AddInterceptor(req)
 	setHeaders(req, header)
 
-	res, err := client.Do(req)
+	res, err := n.Client.Do(req)
 	if err != nil {
 		return resNotFound
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return resNotFound
 	}
@@ -164,5 +165,8 @@ func isURL(url string) bool {
 func New(config Config) CallX {
 	return &callxMethod{
 		Config: config,
+		Client: &http.Client{
+			Timeout: time.Second * config.Timeout,
+		},
 	}
 }

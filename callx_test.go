@@ -2,13 +2,12 @@ package callx_test
 
 import (
 	"fmt"
+	"github.com/prongbang/callx"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
-
-	"github.com/prongbang/callx"
 )
 
 func Test_Get(t *testing.T) {
@@ -190,7 +189,7 @@ func Test_Req(t *testing.T) {
 	req := callx.New(c)
 
 	custom := callx.Custom{
-		URL:    ts.URL + "/post",
+		URL:    fmt.Sprintf("%s/post", ts.URL),
 		Method: http.MethodPost,
 		Header: callx.Header{
 			callx.Authorization: fmt.Sprintf("%s %s", callx.Bearer, "eyJh9.e30.EtU"),
@@ -220,7 +219,7 @@ func Test_ReqEncoded(t *testing.T) {
 	form := url.Values{}
 	form.Set("message", "Test")
 	custom := callx.Custom{
-		URL:    "https://httpbin.org/post",
+		URL:    fmt.Sprintf("%s/post", ts.URL),
 		Method: http.MethodPost,
 		Header: callx.Header{
 			callx.Authorization: "Bearer XTZ",
@@ -246,11 +245,48 @@ func Test_ReqMethodNotFound(t *testing.T) {
 	}
 	req := callx.New(c)
 	custom := callx.Custom{
-		URL:    ts.URL + "/post",
+		URL:    fmt.Sprintf("%s/post", ts.URL),
 		Method: "!#@!@",
 	}
 	data := req.Req(custom)
 	if data.Code != 404 {
 		t.Error("CallX Post Error")
 	}
+}
+
+func Benchmark_CallXRequests(b *testing.B) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, World")
+	}))
+	defer ts.Close()
+
+	c := callx.Config{
+		BaseURL: ts.URL,
+		Timeout: 60,
+	}
+	req := callx.New(c)
+
+	b.Run("GET", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = req.Get("/todos/1")
+		}
+	})
+
+	b.Run("POST", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = req.Post("/todos", nil)
+		}
+	})
+
+	b.Run("PUT", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = req.Put("/todos/1", nil)
+		}
+	})
+
+	b.Run("DELETE", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = req.Delete("/todos/1")
+		}
+	})
 }
