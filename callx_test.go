@@ -185,8 +185,15 @@ func Test_Req(t *testing.T) {
 
 	c := callx.Config{
 		Timeout: 60,
+		Interceptor: []callx.Interceptor{
+			callx.HeaderInterceptor(callx.Header{
+				"X-TOKEN": "Bearer XYZ",
+			}),
+		},
 	}
 	req := callx.New(c)
+
+	req.AddInterceptor(callx.LoggerInterceptor())
 
 	custom := callx.Custom{
 		URL:    fmt.Sprintf("%s/post", ts.URL),
@@ -263,6 +270,11 @@ func Benchmark_CallXRequests(b *testing.B) {
 	c := callx.Config{
 		BaseURL: ts.URL,
 		Timeout: 60,
+		Interceptor: []callx.Interceptor{
+			callx.HeaderInterceptor(callx.Header{
+				callx.Authorization: "Bearer XTZ",
+			}),
+		},
 	}
 	req := callx.New(c)
 
@@ -281,6 +293,12 @@ func Benchmark_CallXRequests(b *testing.B) {
 	b.Run("PUT", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_ = req.Put("/todos/1", nil)
+		}
+	})
+
+	b.Run("PATCH", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = req.Patch("/todos/1", nil)
 		}
 	})
 

@@ -61,13 +61,13 @@ type CallX interface {
 	Put(url string, body interface{}) Response
 	Delete(url string) Response
 	Req(custom Custom) Response
-	AddInterceptor(req *http.Request)
+	AddInterceptor(intercept ...Interceptor)
 	request(urlStr string, method string, header Header, payload io.Reader) Response
 }
 
 type callxMethod struct {
 	Config Config
-	Client *http.Client // Reuse the same client for connection pooling
+	Client *http.Client
 }
 
 func (n *callxMethod) Get(url string) Response {
@@ -97,9 +97,9 @@ func (n *callxMethod) Req(custom Custom) Response {
 	return n.request(custom.URL, custom.Method, custom.Header, getPayload(custom.Body))
 }
 
-func (n *callxMethod) AddInterceptor(req *http.Request) {
-	for _, interceptor := range interceptors {
-		interceptor.Interceptor(req)
+func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
+	for _, ins := range intercept {
+		interceptors = append(interceptors, ins)
 	}
 }
 
@@ -112,7 +112,6 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 	}
 
 	if !isURL(urlStr) && n.Config.BaseURL != "" {
-		endpointURL.Scheme = "http" // You can set this to "https" if needed
 		endpointURL.Host = n.Config.BaseURL
 	}
 
@@ -121,7 +120,7 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 		return resNotFound
 	}
 
-	n.AddInterceptor(req)
+	setInterceptor(req, interceptors)
 	setHeaders(req, header)
 
 	res, err := n.Client.Do(req)
@@ -138,6 +137,12 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 	return Response{
 		Code: res.StatusCode,
 		Data: body,
+	}
+}
+
+func setInterceptor(req *http.Request, interceptors []Interceptor) {
+	for _, interceptor := range interceptors {
+		interceptor.Interceptor(req)
 	}
 }
 
@@ -163,6 +168,7 @@ func isURL(url string) bool {
 
 // New callx
 func New(config Config) CallX {
+	interceptors = config.Interceptor
 	return &callxMethod{
 		Config: config,
 		Client: &http.Client{
