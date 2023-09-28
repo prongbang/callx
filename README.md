@@ -1,6 +1,6 @@
 # CallX
 
-HTTP Client easy call API
+CallX HTTP Client easy call API for Golang
 
 [![Build Status](http://img.shields.io/travis/prongbang/callx.svg)](https://travis-ci.org/prongbang/callx)
 [![Codecov](https://img.shields.io/codecov/c/github/prongbang/callx.svg)](https://codecov.io/gh/prongbang/callx)
