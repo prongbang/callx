@@ -1,6 +1,7 @@
 package callx
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -37,9 +38,11 @@ type Custom struct {
 
 // Config callx model
 type Config struct {
-	BaseURL     string
-	Timeout     time.Duration
-	Interceptor []Interceptor
+	BaseURL            string
+	Timeout            time.Duration
+	Interceptor        []Interceptor
+	Transport          *http.RoundTripper
+	InsecureSkipVerify bool
 }
 
 // Interceptor the interface
@@ -169,10 +172,20 @@ func isURL(url string) bool {
 // New callx
 func New(config Config) CallX {
 	interceptors = config.Interceptor
+	client := &http.Client{
+		Timeout: time.Second * config.Timeout,
+	}
+
+	if config.Transport != nil {
+		client.Transport = *config.Transport
+	} else if config.InsecureSkipVerify {
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify},
+		}
+	}
+
 	return &callxMethod{
 		Config: config,
-		Client: &http.Client{
-			Timeout: time.Second * config.Timeout,
-		},
+		Client: client,
 	}
 }
