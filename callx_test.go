@@ -25,7 +25,7 @@ func Test_Get(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	data := req.Get("/todos/1")
+	data := req.Get("/todos/1?q=callx")
 	if data.Code != 200 {
 		t.Error("CallX Get Error")
 	}
@@ -38,12 +38,11 @@ func Test_PostBodyNil(t *testing.T) {
 	defer ts.Close()
 
 	c := callx.Config{
-		BaseURL: ts.URL,
 		Timeout: 60,
 	}
 	req := callx.New(c)
 
-	data := req.Post("/todos", nil)
+	data := req.Post(fmt.Sprintf("%s/todos?q=callx&type=http", ts.URL), nil)
 	if data.Code != 200 {
 		t.Error("CallX Post Error")
 	}
