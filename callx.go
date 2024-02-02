@@ -3,7 +3,6 @@ package callx
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -110,22 +109,15 @@ func (n *callxMethod) AddInterceptor(intercept ...Interceptor) {
 func (n *callxMethod) request(urlStr string, method string, header Header, payload io.Reader) Response {
 	resNotFound := Response{Code: http.StatusNotFound}
 
-	var err error
-	var u *url.URL
-	endpoint := ""
-	if !isURL(urlStr) && n.Config.BaseURL != "" {
-		if _, err = url.Parse(n.Config.BaseURL); err == nil {
-			endpoint = fmt.Sprintf("%s%s", n.Config.BaseURL, urlStr)
-		}
-	} else if u, err = url.Parse(urlStr); err == nil {
-		endpoint = u.String()
+	if n.Config.BaseURL != "" {
+		urlStr = n.Config.BaseURL + urlStr
 	}
-
+	endpointURL, err := url.Parse(urlStr)
 	if err != nil {
 		return resNotFound
 	}
 
-	req, err := http.NewRequest(method, endpoint, payload)
+	req, err := http.NewRequest(method, endpointURL.String(), payload)
 	if err != nil {
 		return resNotFound
 	}

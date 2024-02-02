@@ -12,7 +12,7 @@ import (
 
 func Test_Get(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Get")
+		_, _ = fmt.Fprintln(w, "Hello, Get")
 	}))
 	defer ts.Close()
 
@@ -33,7 +33,7 @@ func Test_Get(t *testing.T) {
 
 func Test_PostBodyNil(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Post")
+		_, _ = fmt.Fprintln(w, "Hello, Post")
 	}))
 	defer ts.Close()
 
@@ -50,7 +50,7 @@ func Test_PostBodyNil(t *testing.T) {
 
 func Test_PostBodyError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Post")
+		_, _ = fmt.Fprintln(w, "Hello, Post")
 	}))
 	defer ts.Close()
 
@@ -84,7 +84,7 @@ func Test_PostServerNotFound(t *testing.T) {
 
 func Test_Post(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Post")
+		_, _ = fmt.Fprintln(w, "Hello, Post")
 	}))
 	defer ts.Close()
 
@@ -103,7 +103,7 @@ func Test_Post(t *testing.T) {
 
 func Test_Post_List(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Post")
+		_, _ = fmt.Fprintln(w, "Hello, Post")
 	}))
 	defer ts.Close()
 
@@ -122,7 +122,7 @@ func Test_Post_List(t *testing.T) {
 
 func Test_Put(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Put")
+		_, _ = fmt.Fprintln(w, "Hello, Put")
 	}))
 	defer ts.Close()
 
@@ -141,7 +141,7 @@ func Test_Put(t *testing.T) {
 
 func Test_Patch(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Patch")
+		_, _ = fmt.Fprintln(w, "Hello, Patch")
 	}))
 	defer ts.Close()
 
@@ -160,7 +160,7 @@ func Test_Patch(t *testing.T) {
 
 func Test_Delete(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Delete")
+		_, _ = fmt.Fprintln(w, "Hello, Delete")
 	}))
 	defer ts.Close()
 
@@ -178,7 +178,7 @@ func Test_Delete(t *testing.T) {
 
 func Test_Req(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Req Post")
+		_, _ = fmt.Fprintln(w, "Hello, Req Post")
 	}))
 	defer ts.Close()
 
@@ -213,7 +213,7 @@ func Test_Req(t *testing.T) {
 
 func Test_ReqEncoded(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Req Post")
+		_, _ = fmt.Fprintln(w, "Hello, Req Post")
 	}))
 	defer ts.Close()
 
@@ -242,7 +242,7 @@ func Test_ReqEncoded(t *testing.T) {
 
 func Test_ReqMethodNotFound(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, Post")
+		_, _ = fmt.Fprintln(w, "Hello, Post")
 	}))
 	defer ts.Close()
 
@@ -262,7 +262,7 @@ func Test_ReqMethodNotFound(t *testing.T) {
 
 func Benchmark_CallXRequests(b *testing.B) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, World")
+		_, _ = fmt.Fprintln(w, "Hello, World")
 	}))
 	defer ts.Close()
 
@@ -279,31 +279,31 @@ func Benchmark_CallXRequests(b *testing.B) {
 
 	b.Run("GET", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Get("/todos/1")
+			_ = req.Get("/todos/1?id=1")
 		}
 	})
 
 	b.Run("POST", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Post("/todos", nil)
+			_ = req.Post("/todos?id=1", nil)
 		}
 	})
 
 	b.Run("PUT", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Put("/todos/1", nil)
+			_ = req.Put("/todos/1?id=1", nil)
 		}
 	})
 
 	b.Run("PATCH", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Patch("/todos/1", nil)
+			_ = req.Patch("/todos/1?id=1", nil)
 		}
 	})
 
 	b.Run("DELETE", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Delete("/todos/1")
+			_ = req.Delete("/todos/1?id=1")
 		}
 	})
 }
