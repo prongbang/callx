@@ -1,42 +1,44 @@
 package callx
 
 import (
-	"log"
-	"net/http"
+	"fmt"
+	"github.com/valyala/fasthttp"
 )
 
 type headerInterceptor struct {
 	Header Header
 }
 
+func (a *headerInterceptor) Response(res *fasthttp.Response) {
+}
+
+func (a *headerInterceptor) Request(req *fasthttp.Request) {
+	for k, v := range a.Header {
+		req.Header.Set(k, v)
+	}
+}
+
 type loggerInterceptor struct {
+}
+
+func (l *loggerInterceptor) Response(res *fasthttp.Response) {
+}
+
+func (l *loggerInterceptor) Request(req *fasthttp.Request) {
+	fmt.Println("-->", string(req.Header.Method()), string(req.Header.RequestURI()))
+	fmt.Println("-->", req.Header.RawHeaders())
+	fmt.Println("-->", "END")
 }
 
 type jsonContentTypeInterceptor struct {
 }
 
-func (l *loggerInterceptor) Interceptor(req *http.Request) {
-	log.Println("-->", req.Method, req.URL.String())
-	for k, v := range req.Header {
-		head := k
-		value := ""
-		for _, val := range v {
-			value += val + " "
-		}
-		log.Print(head, ": ", value)
-	}
-	log.Println("-->", "END")
+func (j *jsonContentTypeInterceptor) Response(res *fasthttp.Response) {
 }
 
-func (j *jsonContentTypeInterceptor) Interceptor(req *http.Request) {
+func (j *jsonContentTypeInterceptor) Request(req *fasthttp.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-}
-
-func (a *headerInterceptor) Interceptor(req *http.Request) {
-	for k, v := range a.Header {
-		req.Header.Set(k, v)
-	}
 }
 
 // HeaderInterceptor provide a instance

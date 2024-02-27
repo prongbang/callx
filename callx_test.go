@@ -27,7 +27,7 @@ func Test_Get(t *testing.T) {
 
 	data := req.Get("/todos/1?q=callx")
 	if data.Code != 200 {
-		t.Error("CallX Get Error")
+		t.Error("CallX Get Error", data)
 	}
 }
 
@@ -94,7 +94,7 @@ func Test_Post(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := callx.Body{}
+	body := map[string]interface{}{}
 	data := req.Post("/todos", body)
 	if data.Code != 200 {
 		t.Error("CallX Post Error")
@@ -132,7 +132,7 @@ func Test_Put(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := callx.Body{}
+	body := map[string]interface{}{}
 	data := req.Put("/todos/1", body)
 	if data.Code != 200 {
 		t.Error("CallX Put Error")
@@ -151,7 +151,7 @@ func Test_Patch(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := callx.Body{}
+	body := map[string]interface{}{}
 	data := req.Patch("/todos/1", body)
 	if data.Code != 200 {
 		t.Error("CallX Patch Error")
@@ -200,10 +200,10 @@ func Test_Req(t *testing.T) {
 		Header: callx.Header{
 			callx.Authorization: fmt.Sprintf("%s %s", callx.Bearer, "eyJh9.e30.EtU"),
 		},
-		Body: callx.Body{
+		Body: callx.Body(map[string]interface{}{
 			"username": "root",
 			"password": "pass",
-		},
+		}),
 	}
 	data := req.Req(custom)
 	if data.Code != 200 {
@@ -255,8 +255,8 @@ func Test_ReqMethodNotFound(t *testing.T) {
 		Method: "!#@!@",
 	}
 	data := req.Req(custom)
-	if data.Code != 404 {
-		t.Error("CallX Post Error")
+	if data.Code != 400 {
+		t.Error("CallX Post Error", string(data.Data))
 	}
 }
 
@@ -285,19 +285,36 @@ func Benchmark_CallXRequests(b *testing.B) {
 
 	b.Run("POST", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Post("/todos?id=1", nil)
+			_ = req.Post("/todos?id=1", callx.Body(map[string]any{"body": "post"}))
+		}
+	})
+
+	b.Run("POST-ENCODE", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			form := url.Values{}
+			form.Set("message", "Test")
+			custom := callx.Custom{
+				URL:    fmt.Sprintf("%s/post", ts.URL),
+				Method: http.MethodPost,
+				Header: callx.Header{
+					callx.Authorization: "Bearer XTZ",
+					callx.ContentType:   "application/x-www-form-urlencoded",
+				},
+				Form: strings.NewReader(form.Encode()),
+			}
+			_ = req.Req(custom)
 		}
 	})
 
 	b.Run("PUT", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Put("/todos/1?id=1", nil)
+			_ = req.Put("/todos/1?id=1", callx.Body(map[string]any{"body": "put"}))
 		}
 	})
 
 	b.Run("PATCH", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = req.Patch("/todos/1?id=1", nil)
+			_ = req.Patch("/todos/1?id=1", callx.Body(map[string]any{"body": "patch"}))
 		}
 	})
 

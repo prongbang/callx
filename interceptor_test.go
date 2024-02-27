@@ -1,30 +1,35 @@
 package callx_test
 
 import (
-	"net/http/httptest"
+	"github.com/valyala/fasthttp"
+	"net/http"
 	"testing"
 
 	"github.com/prongbang/callx"
 )
 
 func Test_LoggerInterceptor(t *testing.T) {
-	req := httptest.NewRequest("GET", "/todo", nil)
+	req := fasthttp.AcquireRequest()
+	req.Header.SetMethod(http.MethodGet)
+	req.Header.SetRequestURI("/todo")
 	header := callx.HeaderInterceptor(callx.Header{
 		callx.Authorization: "Bearer Token",
 	})
-	header.Interceptor(req)
+	header.Request(req)
 	logger := callx.LoggerInterceptor()
-	logger.Interceptor(req)
-	if req.URL.Path != "/todo" {
+	logger.Request(req)
+	if string(req.Header.RequestURI()) != "/todo" {
 		t.Error("Request not found")
 	}
 }
 
 func Test_JSONContentTypeInterceptor(t *testing.T) {
-	req := httptest.NewRequest("GET", "/todo", nil)
+	req := fasthttp.AcquireRequest()
+	req.Header.SetMethod(http.MethodGet)
+	req.Header.SetRequestURI("/todo")
 	jsonIntercept := callx.JSONContentTypeInterceptor()
-	jsonIntercept.Interceptor(req)
-	if req.URL.Path != "/todo" {
+	jsonIntercept.Request(req)
+	if string(req.Header.RequestURI()) != "/todo" {
 		t.Error("Request not found")
 	}
 }
