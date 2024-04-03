@@ -7,7 +7,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -175,16 +174,11 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 		fasthttp.ReleaseResponse(resp)
 	}()
 
-	resNotFound := Response{Code: http.StatusNotFound}
-
+	endpointURL := urlStr
 	if n.Config.BaseURL != "" {
-		urlStr = n.Config.BaseURL + urlStr
+		endpointURL = n.Config.BaseURL + urlStr
 	}
-	endpointURL, err := url.Parse(urlStr)
-	if err != nil {
-		return resNotFound
-	}
-	req.SetRequestURI(endpointURL.String())
+	req.SetRequestURI(endpointURL)
 	req.Header.SetMethod(method)
 	setRequestInterceptor(req, n.Config.Interceptor)
 	setHeaders(req, header)
@@ -204,16 +198,13 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 		}
 	}
 
-	err = n.Client.Do(req, resp)
+	err := n.Client.Do(req, resp)
 	if err != nil {
-		return resNotFound
+		return Response{Code: http.StatusNotFound, Data: []byte(err.Error())}
 	}
 	setResponseInterceptor(resp, n.Config.Interceptor)
 
-	return Response{
-		Code: resp.StatusCode(),
-		Data: resp.Body(),
-	}
+	return Response{Code: resp.StatusCode(), Data: resp.Body()}
 }
 
 func setRequestInterceptor(req *fasthttp.Request, interceptors []Interceptor) {
