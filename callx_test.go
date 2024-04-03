@@ -60,7 +60,7 @@ func Test_PostBodyError(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := map[string]interface{}{
+	body := callx.Body{
 		"error": make(chan int),
 	}
 	data := req.Post("/todos", body)
@@ -94,7 +94,7 @@ func Test_Post(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := map[string]interface{}{}
+	body := callx.Body{}
 	data := req.Post("/todos", body)
 	if data.Code != 200 && string(data.Data) != "Hello, Post" {
 		t.Error("CallX Post Error")
@@ -132,7 +132,7 @@ func Test_Put(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := map[string]interface{}{}
+	body := callx.Body{}
 	data := req.Put("/todos/1", body)
 	if data.Code != 200 && string(data.Data) != "Hello, Put" {
 		t.Error("CallX Put Error")
@@ -151,7 +151,7 @@ func Test_Patch(t *testing.T) {
 	}
 	req := callx.New(c)
 
-	body := map[string]interface{}{}
+	body := callx.Body{}
 	data := req.Patch("/todos/1", body)
 	if data.Code != 200 && string(data.Data) != "Hello, Patch" {
 		t.Error("CallX Patch Error")
@@ -200,10 +200,10 @@ func Test_Req(t *testing.T) {
 		Header: callx.Header{
 			callx.Authorization: fmt.Sprintf("%s %s", callx.Bearer, "eyJh9.e30.EtU"),
 		},
-		Body: callx.Body(map[string]interface{}{
+		Body: callx.Body{
 			"username": "root",
 			"password": "pass",
-		}),
+		},
 	}
 	data := req.Req(custom)
 	if data.Code != 200 && string(data.Data) != "Hello, Req Post" {

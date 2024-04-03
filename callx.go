@@ -23,7 +23,7 @@ const (
 type Header map[string]string
 
 // Body custom type
-type Body interface{}
+type Body map[string]any
 
 // Form custom type
 type Form io.Reader
@@ -33,7 +33,7 @@ type Custom struct {
 	URL    string
 	Method string
 	Header Header
-	Body   Body
+	Body   interface{}
 	Form   Form
 }
 
@@ -118,9 +118,9 @@ type Response struct {
 // CallX the interface
 type CallX interface {
 	Get(url string) Response
-	Post(url string, body Body) Response
-	Patch(url string, body Body) Response
-	Put(url string, body Body) Response
+	Post(url string, body interface{}) Response
+	Patch(url string, body interface{}) Response
+	Put(url string, body interface{}) Response
 	Delete(url string) Response
 	Req(custom Custom) Response
 	AddInterceptor(intercept ...Interceptor)
@@ -136,15 +136,15 @@ func (n *callxMethod) Get(url string) Response {
 	return n.request(url, http.MethodGet, nil, nil)
 }
 
-func (n *callxMethod) Post(url string, body Body) Response {
+func (n *callxMethod) Post(url string, body interface{}) Response {
 	return n.request(url, http.MethodPost, nil, body)
 }
 
-func (n *callxMethod) Patch(url string, body Body) Response {
+func (n *callxMethod) Patch(url string, body interface{}) Response {
 	return n.request(url, http.MethodPatch, nil, body)
 }
 
-func (n *callxMethod) Put(url string, body Body) Response {
+func (n *callxMethod) Put(url string, body interface{}) Response {
 	return n.request(url, http.MethodPut, nil, body)
 }
 
