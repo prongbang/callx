@@ -66,13 +66,15 @@ type Config struct {
 	// By default idle connections are closed after DefaultMaxIdleConnDuration.
 	MaxIdleConnDuration time.Duration
 
-	Interceptor        []Interceptor
-	InsecureSkipVerify bool
+	Interceptor []Interceptor
 
 	// TLS config for https connections.
 	//
 	// Default TLS config is used if not set.
 	TLSConfig *tls.Config
+
+	// InsecureSkipVerify controls whether a client verifies the server's certificate chain and host name.
+	InsecureSkipVerify bool
 
 	// TCPDialer contains options to control a group of Dial calls.
 	TCPDialer *fasthttp.TCPDialer
@@ -255,6 +257,10 @@ func New(config Config) CallX {
 		DisablePathNormalizing:        true,
 		MaxIdleConnDuration:           time.Hour * 1,
 		Dial:                          tcpDialer.Dial,
+		ReadBufferSize:                config.ReadBufferSize,
+		WriteBufferSize:               config.WriteBufferSize,
+		RetryIf:                       config.RetryIf,
+		StreamResponseBody:            config.StreamResponseBody,
 	}
 
 	if config.MaxConnsPerHost > 0 {
