@@ -18,15 +18,17 @@ go get github.com/prongbang/callx
 
 ```shell
 Benchmark_CallXRequests/GET
-Benchmark_CallXRequests/GET-10         	   33300	     33900 ns/op
+Benchmark_CallXRequests/GET-10         	   35043	     28867 ns/op
 Benchmark_CallXRequests/POST
-Benchmark_CallXRequests/POST-10        	   33763	     35149 ns/op
+Benchmark_CallXRequests/POST-10        	   36608	     29991 ns/op
+Benchmark_CallXRequests/POST-ENCODE
+Benchmark_CallXRequests/POST-ENCODE-10 	   33936	     37955 ns/op
 Benchmark_CallXRequests/PUT
-Benchmark_CallXRequests/PUT-10         	   32860	     35268 ns/op
+Benchmark_CallXRequests/PUT-10         	   39570	     31499 ns/op
 Benchmark_CallXRequests/PATCH
-Benchmark_CallXRequests/PATCH-10       	   33370	     35393 ns/op
+Benchmark_CallXRequests/PATCH-10       	   39568	     30819 ns/op
 Benchmark_CallXRequests/DELETE
-Benchmark_CallXRequests/DELETE-10      	   34398	     34612 ns/op
+Benchmark_CallXRequests/DELETE-10      	   40272	     30470 ns/op
 ```
 
 ### How to use
