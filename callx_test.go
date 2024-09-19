@@ -12,6 +12,24 @@ import (
 
 func Test_Get(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set a cookie
+		cookie := &http.Cookie{
+			Name:     "session_id",
+			Value:    "12345",
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   3600, // Cookie expires in 1 hour
+		}
+		http.SetCookie(w, cookie)
+		cookie2 := &http.Cookie{
+			Name:     "user_preferences",
+			Value:    "dark_mode=true",
+			Path:     "/",
+			HttpOnly: false,
+			MaxAge:   86400,                   // Cookie expires in 1 day
+			SameSite: http.SameSiteStrictMode, // Optionally set SameSite attribute
+		}
+		http.SetCookie(w, cookie2)
 		_, _ = fmt.Fprintln(w, "Hello, Get")
 	}))
 	defer ts.Close()
@@ -22,11 +40,15 @@ func Test_Get(t *testing.T) {
 		Interceptor: []callx.Interceptor{
 			callx.LoggerInterceptor(),
 		},
+		Cookies: true,
 	}
 	req := callx.New(c)
 
 	data := req.Get("/todos/1?q=callx")
 	if data.Code != 200 && string(data.Data) != "Hello, Get" {
+		t.Error("CallX Get Error", data)
+	}
+	if !strings.Contains(data.Cookies["session_id"], "session_id=12345;") {
 		t.Error("CallX Get Error", data)
 	}
 }
