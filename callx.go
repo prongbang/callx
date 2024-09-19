@@ -101,6 +101,8 @@ type Config struct {
 
 	// StreamResponseBody enables response body streaming.
 	StreamResponseBody bool
+
+	Cookies bool
 }
 
 // Interceptor the interface
@@ -111,8 +113,9 @@ type Interceptor interface {
 
 // Response callx model
 type Response struct {
-	Code int
-	Data []byte
+	Code    int
+	Data    []byte
+	Cookies map[string]string
 }
 
 // CallX the interface
@@ -200,9 +203,20 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 
 	err := n.Client.Do(req, resp)
 	if err != nil {
-		return Response{Code: http.StatusNotFound, Data: []byte(err.Error())}
+		return Response{
+			Code: http.StatusNotFound,
+			Data: []byte(err.Error()),
+		}
 	}
 	setResponseInterceptor(resp, n.Config.Interceptor)
+
+	if n.Config.Cookies {
+		cookies := map[string]string{}
+		resp.Header.VisitAllCookie(func(key, value []byte) {
+			cookies[string(key)] = string(value)
+		})
+		return Response{Code: resp.StatusCode(), Data: resp.Body(), Cookies: cookies}
+	}
 
 	return Response{Code: resp.StatusCode(), Data: resp.Body()}
 }
