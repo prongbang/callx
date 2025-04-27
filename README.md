@@ -1,48 +1,60 @@
-# CallX
+# CallX 🚀
 
-CallX HTTP Client easy call API for Golang
-
-[![Build Status](http://img.shields.io/travis/prongbang/callx.svg)](https://travis-ci.org/prongbang/callx)
 [![Codecov](https://img.shields.io/codecov/c/github/prongbang/callx.svg)](https://codecov.io/gh/prongbang/callx)
 [![Go Report Card](https://goreportcard.com/badge/github.com/prongbang/callx)](https://goreportcard.com/report/github.com/prongbang/callx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/prongbang/callx.svg)](https://pkg.go.dev/github.com/prongbang/callx)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/prongbang)
+> A lightweight, fast, and easy-to-use HTTP client for Go. Make API calls with just a few lines of code!
 
-### Install
+## ✨ Features
 
-```
+- 🚀 **Ultra-fast performance** - Optimized for speed
+- 🛠 **Simple API** - Easy to learn and use
+- 🔧 **Highly customizable** - Full control over requests
+- 🧪 **Well tested** - High test coverage
+
+## ⚡️ Performance
+
+CallX is designed for optimal performance. Here are the benchmark results:
+
+| HTTP Method  | Operations | Time per Operation |
+|-------------|------------|-------------------|
+| GET         | 41,756     | 31,823 ns/op      |
+| POST        | 38,692     | 35,787 ns/op      |
+| POST-ENCODE | 28,848     | 39,314 ns/op      |
+| PUT         | 31,401     | 35,046 ns/op      |
+| PATCH       | 38,923     | 30,094 ns/op      |
+| DELETE      | 41,100     | 29,195 ns/op      |
+
+## 📦 Installation
+
+```bash
 go get github.com/prongbang/callx
 ```
 
-### Benchmark
+## 🚀 Quick Start
 
-```shell
-Benchmark_CallXRequests/GET-10         	   41756	     31823 ns/op
-Benchmark_CallXRequests/POST-10        	   38692	     35787 ns/op
-Benchmark_CallXRequests/POST-ENCODE-10 	   28848	     39314 ns/op
-Benchmark_CallXRequests/PUT-10         	   31401	     35046 ns/op
-Benchmark_CallXRequests/PATCH-10       	   38923	     30094 ns/op
-Benchmark_CallXRequests/DELETE-10      	   41100	     29195 ns/op
-```
+### Basic Usage
 
-### How to use
-
-- Using base URL
-
-```golang
+```go
+// Create a client with base URL
 c := callx.Config{
     BaseURL: "https://jsonplaceholder.typicode.com",
     Timeout: 60,
 }
 req := callx.New(c)
 
+// Make a GET request
 data := req.Get("/todos/1")
 fmt.Println(string(data.Data))
 ```
 
-- Custom request
+## 🔥 Advanced Features
 
-```golang
+### Custom Request with Authentication
+
+```go
 c := callx.Config{
     Timeout: 60,
 }
@@ -52,7 +64,7 @@ custom := callx.Custom{
     URL:    "https://httpbin.org/post",
     Method: http.MethodPost,
     Header: callx.Header{
-        callx.Authorization: fmt.Sprintf("%s %s", callx.Bearer, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.Et9HFtf9R3GEMA0IICOfFMVXY7kkTX1wr4qCyhIf58U"),
+        callx.Authorization: fmt.Sprintf("%s %s", callx.Bearer, "your-token"),
     },
     Body: callx.Body{
         "username": "root",
@@ -63,13 +75,14 @@ custom := callx.Custom{
         },
     },
 }
+
 data := req.Req(custom)
 fmt.Println(string(data.Data))
 ```
 
-- Custom request form encoded
+### Form-encoded Requests
 
-```golang
+```go
 c := callx.Config{
     Timeout: 60,
 }
@@ -87,6 +100,7 @@ custom := callx.Custom{
     },
     Form: strings.NewReader(form.Encode()),
 }
+
 data := req.Req(custom)
 fmt.Println(string(data.Data))
 ```
