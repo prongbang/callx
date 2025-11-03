@@ -183,8 +183,6 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 	}
 	req.SetRequestURI(endpointURL)
 	req.Header.SetMethod(method)
-	setRequestInterceptor(req, n.Config.Interceptor)
-	setHeaders(req, header)
 
 	if payload != nil {
 		if form, fok := payload.(Form); fok {
@@ -200,6 +198,8 @@ func (n *callxMethod) request(urlStr string, method string, header Header, paylo
 			}
 		}
 	}
+	setRequestInterceptor(req, n.Config.Interceptor)
+	setHeaders(req, header)
 
 	err := n.Client.Do(req, resp)
 	if err != nil {

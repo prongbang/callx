@@ -3,6 +3,7 @@ package callx
 import (
 	"fmt"
 	"github.com/valyala/fasthttp"
+	"net/http"
 )
 
 type headerInterceptor struct {
@@ -21,13 +22,41 @@ func (a *headerInterceptor) Request(req *fasthttp.Request) {
 type loggerInterceptor struct {
 }
 
-func (l *loggerInterceptor) Response(res *fasthttp.Response) {
+func (l *loggerInterceptor) Request(req *fasthttp.Request) {
+	method := string(req.Header.Method())
+	url := string(req.URI().FullURI())
+	body := req.Body()
+
+	fmt.Printf("--> %s %s\n", method, url)
+
+	req.Header.VisitAll(func(k, v []byte) {
+		fmt.Printf("%s: %s\n", string(k), string(v))
+	})
+
+	if len(body) > 0 {
+		fmt.Println()
+		fmt.Println(string(body))
+	}
+
+	fmt.Printf("--> END %s (%d-byte body)\n\n", method, len(body))
 }
 
-func (l *loggerInterceptor) Request(req *fasthttp.Request) {
-	fmt.Println("-->", string(req.Header.Method()), string(req.Header.RequestURI()))
-	fmt.Println("-->", req.Header.RawHeaders())
-	fmt.Println("-->", "END")
+func (l *loggerInterceptor) Response(res *fasthttp.Response) {
+	status := res.StatusCode()
+	body := res.Body()
+
+	fmt.Printf("<-- %d %s\n", status, http.StatusText(status))
+
+	res.Header.VisitAll(func(k, v []byte) {
+		fmt.Printf("%s: %s\n", string(k), string(v))
+	})
+
+	if len(body) > 0 {
+		fmt.Println()
+		fmt.Println(string(body))
+	}
+
+	fmt.Printf("<-- END HTTP (%d-byte body)\n\n", len(body))
 }
 
 type jsonContentTypeInterceptor struct {
