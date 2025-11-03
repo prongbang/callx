@@ -20,6 +20,7 @@ func (a *headerInterceptor) Request(req *fasthttp.Request) {
 }
 
 type loggerInterceptor struct {
+	maxBodyLog int
 }
 
 func (l *loggerInterceptor) Request(req *fasthttp.Request) {
@@ -35,7 +36,7 @@ func (l *loggerInterceptor) Request(req *fasthttp.Request) {
 
 	if len(body) > 0 {
 		fmt.Println()
-		fmt.Println(string(body))
+		fmt.Println(l.truncateBody(body))
 	}
 
 	fmt.Printf("--> END %s (%d-byte body)\n\n", method, len(body))
@@ -53,10 +54,20 @@ func (l *loggerInterceptor) Response(res *fasthttp.Response) {
 
 	if len(body) > 0 {
 		fmt.Println()
-		fmt.Println(string(body))
+		fmt.Println(l.truncateBody(body))
 	}
 
 	fmt.Printf("<-- END HTTP (%d-byte body)\n\n", len(body))
+}
+
+func (l *loggerInterceptor) truncateBody(b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	if len(b) > l.maxBodyLog {
+		return fmt.Sprintf("%s\n... (truncated, showing %d of %d bytes)", string(b[:l.maxBodyLog]), l.maxBodyLog, len(b))
+	}
+	return string(b)
 }
 
 type jsonContentTypeInterceptor struct {
@@ -83,6 +94,12 @@ func JSONContentTypeInterceptor() Interceptor {
 }
 
 // LoggerInterceptor provide a instance
-func LoggerInterceptor() Interceptor {
-	return &loggerInterceptor{}
+func LoggerInterceptor(maxBodyLog ...int) Interceptor {
+	limit := 1024
+	if len(maxBodyLog) > 0 {
+		limit = maxBodyLog[0]
+	}
+	return &loggerInterceptor{
+		maxBodyLog: limit,
+	}
 }
