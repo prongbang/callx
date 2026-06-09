@@ -7,6 +7,8 @@
 
 > A lightweight, fast, and easy-to-use HTTP client for Go. Make API calls with just a few lines of code!
 
+![image](https://prongbang.github.io/assets/images/golang/17.png)
+
 ## ✨ Features
 
 - 🚀 **Ultra-fast performance** - Optimized for speed
